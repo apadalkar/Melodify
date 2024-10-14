@@ -19,7 +19,7 @@ const Home = () => {
   }, []);
 
   const handleLogin = () => {
-    window.location.href = '/api/login'; // Redirects to your login API
+    window.location.href = '/api/login'; 
   };
 
   return (
@@ -32,7 +32,7 @@ const Home = () => {
         </>
       ) : (
         <>
-          <p className="text-xl mb-4">Log in to see your data.</p>
+          <p className="text-xl mb-4">Please log in to see your metrics.</p>
           <button
             onClick={handleLogin}
             className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
