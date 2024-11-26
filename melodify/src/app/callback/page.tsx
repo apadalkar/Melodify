@@ -1,3 +1,5 @@
+'use client';
+
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
@@ -6,17 +8,10 @@ const Callback = () => {
 
   useEffect(() => {
     const getToken = async () => {
-      try {
-        const params = new URLSearchParams(window.location.search);
-        const code = params.get('code');
-        const state = params.get('state'); // Optional: use this if you implemented state
+      const params = new URLSearchParams(window.location.search);
+      const code = params.get('code');
 
-        if (!code) {
-          console.error('Authorization code not found');
-          router.push('/error');
-          return;
-        }
-
+      if (code) {
         const response = await fetch('/api/token', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -29,18 +24,18 @@ const Callback = () => {
           router.push('/dashboard'); // Redirect to the dashboard
         } else {
           console.error('Failed to exchange token');
-          router.push('/error'); // Redirect to an error page
+          router.push('/error'); // Redirect to an error page if needed
         }
-      } catch (err) {
-        console.error('Error during token exchange:', err);
+      } else {
+        console.error('Authorization code not found');
         router.push('/error');
       }
     };
 
     getToken();
-  }, [router]); // Added `router` as a dependency
+  }, []);
 
-  return <div>Authenticating...</div>; // Loading UI
+  return <div>Authenticating...</div>;
 };
 
 export default Callback;
