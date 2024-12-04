@@ -1,19 +1,22 @@
-import { NextApiRequest, NextApiResponse } from 'next';
+import { NextResponse } from 'next/server';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  // Replace this with the actual method to get the authorization token
-  const token = 'YOUR_SPOTIFY_ACCESS_TOKEN';
+export async function GET(request: Request) {
+  const token = request.headers.get('Authorization')?.replace('Bearer ', '');
 
-  const response = await fetch('https://api.spotify.com/v1/me/top/tracks?time_range=long_term&limit=5', {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+  if (!token) {
+    return NextResponse.json({ error: 'No access token provided' }, { status: 401 });
+  }
+
+  const response = await fetch('https://api.spotify.com/v1/me/top/tracks', {
+    headers: { Authorization: `Bearer ${token}` },
   });
 
-  if (response.ok) {
-    const data = await response.json();
-    res.status(200).json(data);
-  } else {
-    res.status(response.status).json({ error: 'Failed to fetch top tracks' });
+  if (!response.ok) {
+    const error = await response.text();
+    console.error('Failed to fetch top tracks:', error);
+    return NextResponse.json({ error: 'Failed to fetch top tracks' }, { status: 400 });
   }
+
+  const data = await response.json();
+  return NextResponse.json({ topTracks: data.items });
 }

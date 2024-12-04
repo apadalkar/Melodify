@@ -6,7 +6,7 @@ export async function GET() {
   const scopes = 'user-read-private user-read-email user-top-read';
 
   if (!clientId || !redirectUri) {
-    console.error('Missing environment variables for Spotify configuration.');
+    console.error('Missing environment variables.');
     return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
   }
 
@@ -16,7 +16,6 @@ export async function GET() {
     `redirect_uri=${encodeURIComponent(redirectUri)}&` +
     `scope=${encodeURIComponent(scopes)}`;
 
-  console.log('Generated Spotify auth URL:', authUrl); // Debug the auth URL
 
   return NextResponse.redirect(authUrl);
 }

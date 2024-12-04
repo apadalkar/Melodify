@@ -1,4 +1,3 @@
-// src/app/page.tsx
 "use client";
 
 import { useEffect, useState } from 'react';
@@ -9,10 +8,9 @@ const Home = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Check if the user is authenticated by checking if an access token is available
     const checkAuthentication = () => {
-      const token = sessionStorage.getItem('spotify_access_token');
-      setIsAuthenticated(!!token); // Set to true if token exists, false otherwise
+      const token = localStorage.getItem('spotify_access_token'); // Consistent with callback.ts
+      setIsAuthenticated(!!token); // Set to true if token exists
     };
 
     checkAuthentication();
@@ -24,7 +22,7 @@ const Home = () => {
 
   return (
     <main className="flex flex-col items-center justify-center min-h-screen">
-      <h1 className="text-4xl font-bold mb-8">Welcome to Melodify.</h1>
+      <h1 className="text-4xl font-bold mb-8">Welcome to Melodify</h1>
       {isAuthenticated ? (
         <>
           <h2 className="text-2xl mb-4">Your Top Tracks</h2>
