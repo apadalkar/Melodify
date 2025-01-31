@@ -1,7 +1,7 @@
 "use client"; 
 
 import { useEffect, useState } from 'react';
-import { fetchTopTracks } from './api/fetchtracks';
+import { fetchTopTracks } from '@/lib/fetchTracks';
 
 // Define a type for track objects
 type Track = {
