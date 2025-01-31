@@ -1,9 +1,9 @@
 "use client";
-export const dynamic = "force-dynamic";
 
-import { useEffect, useState } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Image from "next/image";
+
 
 type UserProfile = {
   display_name: string;
@@ -26,57 +26,44 @@ type Artist = {
   genres: string[];
 };
 
-export default function SuccessPage() {
-  // 1) Use Next.js 13's `useSearchParams` hook
-  const searchParams = useSearchParams();
 
+function SuccessPageInner() {
   const [topTracks, setTopTracks] = useState<Track[]>([]);
   const [topArtists, setTopArtists] = useState<Artist[]>([]);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  const searchParams = useSearchParams();
+  const accessToken = searchParams.get("access_token");
+
   useEffect(() => {
+    if (!accessToken) {
+      setError("No access token found.");
+      return;
+    }
+
     const fetchSpotifyData = async () => {
-      // 2) Grab the token from query string: /success?access_token=XXX
-      const accessToken = searchParams.get("access_token");
-
-      if (!accessToken) {
-        setError("No access token found.");
-        return;
-      }
-
       try {
-        // Optionally, store in localStorage for future use:
-        // localStorage.setItem("spotify_access_token", accessToken);
-
-        // Fetch user profile
-        const profileResponse = await fetch("https://api.spotify.com/v1/me", {
+        // 1) Fetch user profile
+        const profileRes = await fetch("https://api.spotify.com/v1/me", {
           headers: { Authorization: `Bearer ${accessToken}` },
         });
-        const profileData: UserProfile = await profileResponse.json();
-
-        // Fetch top tracks
-        const tracksResponse = await fetch(
-          "https://api.spotify.com/v1/me/top/tracks",
-          {
-            headers: { Authorization: `Bearer ${accessToken}` },
-          }
-        );
-        const tracksData = await tracksResponse.json();
-        setTopTracks(tracksData.items as Track[]);
-
-        // Fetch top artists
-        const artistsResponse = await fetch(
-          "https://api.spotify.com/v1/me/top/artists",
-          {
-            headers: { Authorization: `Bearer ${accessToken}` },
-          }
-        );
-        const artistsData = await artistsResponse.json();
-        setTopArtists(artistsData.items as Artist[]);
-
-        // Store user profile
+        const profileData = await profileRes.json();
         setUserProfile(profileData);
+
+        // 2) Fetch top tracks
+        const tracksRes = await fetch("https://api.spotify.com/v1/me/top/tracks", {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
+        const tracksData = await tracksRes.json();
+        setTopTracks(tracksData.items);
+
+        // 3) Fetch top artists
+        const artistsRes = await fetch("https://api.spotify.com/v1/me/top/artists", {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
+        const artistsData = await artistsRes.json();
+        setTopArtists(artistsData.items);
       } catch (err) {
         console.error("Error fetching data:", err);
         setError("Failed to fetch data. Please try again.");
@@ -84,7 +71,7 @@ export default function SuccessPage() {
     };
 
     fetchSpotifyData();
-  }, [searchParams]); // re-run if search params change
+  }, [accessToken]);
 
   if (error) {
     return <div className="text-red-500 text-center mt-10">{error}</div>;
@@ -119,11 +106,9 @@ export default function SuccessPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
           {/* Top Tracks Section */}
           <section>
-            <h3 className="text-2xl font-bold mb-4 text-green-400">
-              Top Tracks
-            </h3>
+            <h3 className="text-2xl font-bold mb-4 text-green-400">Top Tracks</h3>
             <div className="space-y-4">
-              {topTracks.map((track, index) => (
+              {topTracks.map((track: Track, index: number) => (
                 <div
                   key={track.id}
                   className="flex items-center bg-gray-800 p-4 rounded-lg shadow-lg"
@@ -132,7 +117,7 @@ export default function SuccessPage() {
                     {index + 1}
                   </span>
                   <Image
-                    src={track.album.images[0]?.url || "/default-album.png"}
+                    src={track.album.images?.[0]?.url || "/default-album.png"}
                     alt={track.name}
                     width={64}
                     height={64}
@@ -151,11 +136,9 @@ export default function SuccessPage() {
 
           {/* Top Artists Section */}
           <section>
-            <h3 className="text-2xl font-bold mb-4 text-green-400">
-              Top Artists
-            </h3>
+            <h3 className="text-2xl font-bold mb-4 text-green-400">Top Artists</h3>
             <div className="space-y-4">
-              {topArtists.map((artist, index) => (
+              {topArtists.map((artist: Artist, index: number) => (
                 <div
                   key={artist.id}
                   className="flex items-center bg-gray-800 p-4 rounded-lg shadow-lg"
@@ -164,7 +147,7 @@ export default function SuccessPage() {
                     {index + 1}
                   </span>
                   <Image
-                    src={artist.images[0]?.url || "/default-artist.png"}
+                    src={artist.images?.[0]?.url || "/default-artist.png"}
                     alt={artist.name}
                     width={64}
                     height={64}
@@ -188,5 +171,14 @@ export default function SuccessPage() {
         <p className="text-gray-500">Melodify</p>
       </footer>
     </div>
+  );
+}
+
+// ----------------------------------------------------------
+export default function SuccessPageWrapper() {
+  return (
+    <Suspense fallback={<div>Loading Success Page...</div>}>
+      <SuccessPageInner />
+    </Suspense>
   );
 }
