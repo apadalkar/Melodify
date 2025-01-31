@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 
 type UserProfile = {
@@ -24,7 +25,10 @@ type Artist = {
   genres: string[];
 };
 
-const Dashboard = () => {
+export default function SuccessPage() {
+  // 1) Use Next.js 13's `useSearchParams` hook
+  const searchParams = useSearchParams();
+
   const [topTracks, setTopTracks] = useState<Track[]>([]);
   const [topArtists, setTopArtists] = useState<Artist[]>([]);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
@@ -32,9 +36,8 @@ const Dashboard = () => {
 
   useEffect(() => {
     const fetchSpotifyData = async () => {
-      const accessToken = new URLSearchParams(window.location.search).get(
-        "access_token"
-      );
+      // 2) Grab the token from query string: /success?access_token=XXX
+      const accessToken = searchParams.get("access_token");
 
       if (!accessToken) {
         setError("No access token found.");
@@ -42,11 +45,16 @@ const Dashboard = () => {
       }
 
       try {
+        // Optionally, store in localStorage for future use:
+        // localStorage.setItem("spotify_access_token", accessToken);
+
+        // Fetch user profile
         const profileResponse = await fetch("https://api.spotify.com/v1/me", {
           headers: { Authorization: `Bearer ${accessToken}` },
         });
         const profileData: UserProfile = await profileResponse.json();
 
+        // Fetch top tracks
         const tracksResponse = await fetch(
           "https://api.spotify.com/v1/me/top/tracks",
           {
@@ -56,6 +64,7 @@ const Dashboard = () => {
         const tracksData = await tracksResponse.json();
         setTopTracks(tracksData.items as Track[]);
 
+        // Fetch top artists
         const artistsResponse = await fetch(
           "https://api.spotify.com/v1/me/top/artists",
           {
@@ -65,6 +74,7 @@ const Dashboard = () => {
         const artistsData = await artistsResponse.json();
         setTopArtists(artistsData.items as Artist[]);
 
+        // Store user profile
         setUserProfile(profileData);
       } catch (err) {
         console.error("Error fetching data:", err);
@@ -73,7 +83,7 @@ const Dashboard = () => {
     };
 
     fetchSpotifyData();
-  }, []);
+  }, [searchParams]); // re-run if search params change
 
   if (error) {
     return <div className="text-red-500 text-center mt-10">{error}</div>;
@@ -86,21 +96,21 @@ const Dashboard = () => {
         {userProfile && (
           <div className="flex flex-col items-center">
             <Image
-              src={userProfile?.images?.[0]?.url || "/default-profile.png"}
-              alt={userProfile?.display_name || "Unknown User"}
+              src={userProfile.images?.[0]?.url || "/default-profile.png"}
+              alt={userProfile.display_name || "Unknown User"}
               width={160}
               height={160}
               className="w-40 h-40 rounded-full mx-auto mb-4"
             />
             <h1 className="text-4xl font-bold text-green-400">
-              Welcome, {userProfile?.display_name}.
+              Welcome, {userProfile.display_name}.
             </h1>
           </div>
         )}
       </header>
 
       <h2 className="text-5xl font-extrabold mb-10 text-center text-green-400">
-        Your Spotify Insights.
+        Your Spotify Insights
       </h2>
 
       {/* Dashboard Content */}
@@ -130,9 +140,7 @@ const Dashboard = () => {
                   <div>
                     <p className="font-semibold">{track.name}</p>
                     <p className="text-gray-400">
-                      {track.artists
-                        .map((artist: { name: string }) => artist.name)
-                        .join(", ")}
+                      {track.artists.map((a) => a.name).join(", ")}
                     </p>
                   </div>
                 </div>
@@ -180,6 +188,4 @@ const Dashboard = () => {
       </footer>
     </div>
   );
-};
-
-export default Dashboard;
+}
