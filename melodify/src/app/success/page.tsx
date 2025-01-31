@@ -155,7 +155,7 @@ const Dashboard = () => {
       {/* Footer */}
       <footer className="text-center py-6">
         <p className="text-gray-500">
-          Built with ❤️ and Spotify's API | Melodify
+          Melodify
         </p>
       </footer>
     </div>
