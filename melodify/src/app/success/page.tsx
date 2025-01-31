@@ -1,12 +1,34 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
+
+type UserProfile = {
+  display_name: string;
+  images: { url: string }[];
+};
+
+type Track = {
+  id: string;
+  name: string;
+  album: {
+    images: { url: string }[];
+  };
+  artists: { name: string }[];
+};
+
+type Artist = {
+  id: string;
+  name: string;
+  images: { url: string }[];
+  genres: string[];
+};
 
 const Dashboard = () => {
-  const [topTracks, setTopTracks] = useState([]);
-  const [topArtists, setTopArtists] = useState([]);
-  const [userProfile, setUserProfile] = useState(null);
-  const [error, setError] = useState(null);
+  const [topTracks, setTopTracks] = useState<Track[]>([]);
+  const [topArtists, setTopArtists] = useState<Artist[]>([]);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchSpotifyData = async () => {
@@ -21,35 +43,29 @@ const Dashboard = () => {
 
       try {
         const profileResponse = await fetch("https://api.spotify.com/v1/me", {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
+          headers: { Authorization: `Bearer ${accessToken}` },
         });
-        const profileData = await profileResponse.json();
+        const profileData: UserProfile = await profileResponse.json();
 
         const tracksResponse = await fetch(
           "https://api.spotify.com/v1/me/top/tracks",
           {
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-            },
+            headers: { Authorization: `Bearer ${accessToken}` },
           }
         );
         const tracksData = await tracksResponse.json();
+        setTopTracks(tracksData.items as Track[]);
 
         const artistsResponse = await fetch(
           "https://api.spotify.com/v1/me/top/artists",
           {
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-            },
+            headers: { Authorization: `Bearer ${accessToken}` },
           }
         );
         const artistsData = await artistsResponse.json();
+        setTopArtists(artistsData.items as Artist[]);
 
         setUserProfile(profileData);
-        setTopTracks(tracksData.items);
-        setTopArtists(artistsData.items);
       } catch (err) {
         console.error("Error fetching data:", err);
         setError("Failed to fetch data. Please try again.");
@@ -64,31 +80,31 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-500 via-transparent to-green-500 text-white">
+    <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black text-white flex flex-col items-center">
       {/* Header Section */}
-      <header className="px-6 py-12 text-center">
+      <header className="flex-grow px-6 py-10 text-center">
         {userProfile && (
-          <div>
-            <img
-              src={userProfile.images[0]?.url}
-              alt={userProfile.display_name}
-              className="w-24 h-24 rounded-full mx-auto mb-4 border-4 border-green-500"
+          <div className="flex flex-col items-center">
+            <Image
+              src={userProfile?.images?.[0]?.url || "/default-profile.png"}
+              alt={userProfile?.display_name || "Unknown User"}
+              width={160}
+              height={160}
+              className="w-40 h-40 rounded-full mx-auto mb-4"
             />
-            <h1 className="text-4xl font-bold">
-              Welcome, {userProfile.display_name}
+            <h1 className="text-4xl font-bold text-green-400">
+              Welcome, {userProfile?.display_name}.
             </h1>
-            <p className="text-gray-300 mt-2">
-              Followers: {userProfile.followers.total}
-            </p>
           </div>
         )}
       </header>
 
+      <h2 className="text-5xl font-extrabold mb-10 text-center text-green-400">
+        Your Spotify Insights.
+      </h2>
+
       {/* Dashboard Content */}
-      <main className="px-6 py-12">
-        <h2 className="text-3xl font-bold mb-8 text-center">
-          Your Spotify Insights
-        </h2>
+      <main className="px-6 py-6 w-full max-w-5xl">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
           {/* Top Tracks Section */}
           <section>
@@ -99,20 +115,24 @@ const Dashboard = () => {
               {topTracks.map((track, index) => (
                 <div
                   key={track.id}
-                  className="flex items-center bg-gray-800 p-4 rounded-lg"
+                  className="flex items-center bg-gray-800 p-4 rounded-lg shadow-lg"
                 >
                   <span className="text-xl font-bold text-gray-400 mr-4">
                     {index + 1}
                   </span>
-                  <img
-                    src={track.album.images[0]?.url}
+                  <Image
+                    src={track.album.images[0]?.url || "/default-album.png"}
                     alt={track.name}
+                    width={64}
+                    height={64}
                     className="w-16 h-16 rounded-lg mr-4"
                   />
                   <div>
                     <p className="font-semibold">{track.name}</p>
                     <p className="text-gray-400">
-                      {track.artists.map((artist) => artist.name).join(", ")}
+                      {track.artists
+                        .map((artist: { name: string }) => artist.name)
+                        .join(", ")}
                     </p>
                   </div>
                 </div>
@@ -129,20 +149,22 @@ const Dashboard = () => {
               {topArtists.map((artist, index) => (
                 <div
                   key={artist.id}
-                  className="flex items-center bg-gray-800 p-4 rounded-lg"
+                  className="flex items-center bg-gray-800 p-4 rounded-lg shadow-lg"
                 >
                   <span className="text-xl font-bold text-gray-400 mr-4">
                     {index + 1}
                   </span>
-                  <img
-                    src={artist.images[0]?.url}
+                  <Image
+                    src={artist.images[0]?.url || "/default-artist.png"}
                     alt={artist.name}
+                    width={64}
+                    height={64}
                     className="w-16 h-16 rounded-lg mr-4"
                   />
                   <div>
                     <p className="font-semibold">{artist.name}</p>
                     <p className="text-gray-400">
-                      {artist.genres.slice(0, 2).join(", ")}
+                      {artist.genres?.slice(0, 2).join(", ") || "Unknown"}
                     </p>
                   </div>
                 </div>
@@ -154,9 +176,7 @@ const Dashboard = () => {
 
       {/* Footer */}
       <footer className="text-center py-6">
-        <p className="text-gray-500">
-          Melodify
-        </p>
+        <p className="text-gray-500">Melodify</p>
       </footer>
     </div>
   );

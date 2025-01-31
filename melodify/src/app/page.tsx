@@ -5,7 +5,7 @@ import TopTracks from './TopTracks';
 
 const Home = () => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error] = useState<string | null>(null);
 
   useEffect(() => {
     const checkAuthentication = () => {

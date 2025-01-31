@@ -1,3 +1,4 @@
+//api/callback.ts
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
@@ -9,7 +10,6 @@ const Callback = () => {
       try {
         const params = new URLSearchParams(window.location.search);
         const code = params.get('code');
-        const state = params.get('state'); // Optional: use this if you implemented state
 
         if (!code) {
           console.error('Authorization code not found');
@@ -40,7 +40,6 @@ const Callback = () => {
     getToken();
   }, [router]); // Added `router` as a dependency
 
-  return <div>Authenticating...</div>; // Loading UI
 };
 
 export default Callback;

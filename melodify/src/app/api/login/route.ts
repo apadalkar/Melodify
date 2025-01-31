@@ -16,6 +16,5 @@ export async function GET() {
     `redirect_uri=${encodeURIComponent(redirectUri)}&` +
     `scope=${encodeURIComponent(scopes)}`;
 
-
   return NextResponse.redirect(authUrl);
 }

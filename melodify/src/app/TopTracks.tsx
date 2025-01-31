@@ -1,29 +1,33 @@
-// src/app/TopTracks.tsx
-"use client"; // <-- This should be the first line
+"use client"; 
 
 import { useEffect, useState } from 'react';
 import { fetchTopTracks } from './api/fetchtracks';
 
+// Define a type for track objects
+type Track = {
+  id: string;
+  name: string;
+  artists: { name: string }[];
+};
+
 const TopTracks = () => {
-  const [topTracks, setTopTracks] = useState<any[]>([]);
+  const [topTracks, setTopTracks] = useState<Track[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const token = sessionStorage.getItem('spotify_access_token');
-
+  
     if (token) {
-      const getTopTracks = async () => {
-        try {
-          const tracks = await fetchTopTracks(token);
+      fetchTopTracks(token)
+        .then((tracks: Track[]) => {
           setTopTracks(tracks);
-        } catch (err) {
+        })
+        .catch(() => {
           setError('Error fetching top tracks');
-        }
-      };
-
-      getTopTracks();
+        });
     }
   }, []);
+  
 
   return (
     <div>

@@ -33,7 +33,7 @@ const Callback = () => {
     };
 
     getToken();
-  }, []);
+  }, [router]); 
 
   return <div>Authenticating...</div>;
 };

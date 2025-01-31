@@ -2,8 +2,19 @@
 
 import { useEffect, useState } from 'react';
 
+// Define types
+type Track = {
+  name: string;
+  artist: string;
+  plays: number;
+};
+
+type Metrics = {
+  topTracks: Track[];
+};
+
 const Dashboard = () => {
-  const [metrics, setMetrics] = useState<any>(null);
+  const [metrics, setMetrics] = useState<Metrics | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -22,7 +33,7 @@ const Dashboard = () => {
         });
 
         if (response.ok) {
-          const data = await response.json();
+          const data: Metrics = await response.json();
           setMetrics(data);
         } else {
           setError('Failed to fetch metrics');
@@ -43,7 +54,7 @@ const Dashboard = () => {
       <h1>Your Metrics</h1>
       {metrics ? (
         <ul>
-          {metrics.topTracks.map((track: any, index: number) => (
+          {metrics.topTracks.map((track, index) => (
             <li key={index}>
               {track.name} by {track.artist} - {track.plays} plays
             </li>
