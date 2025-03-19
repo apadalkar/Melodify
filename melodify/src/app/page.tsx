@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import TopTracks from './TopTracks';
 
 const Home = () => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
@@ -26,14 +25,9 @@ const Home = () => {
   };
 
   return (
-    <main className="flex flex-col items-center justify-center min-h-screen">
+    <main className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-black via-gray-900 to-black text-white">
       <h1 className="text-4xl font-bold mb-8">Welcome to Melodify</h1>
-      {isAuthenticated ? (
-        <>
-          <h2 className="text-2xl mb-4">Your Top Tracks</h2>
-          <TopTracks />
-        </>
-      ) : (
+      {!isAuthenticated && (
         <>
           <p className="text-xl mb-4">Please log in to see your listening statistics.</p>
           <button

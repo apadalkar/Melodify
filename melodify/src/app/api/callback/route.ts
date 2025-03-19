@@ -10,7 +10,6 @@ export async function GET(request: Request) {
 
   if (!code) {
     console.error("Authorization code is missing.");
-    // Use the baseUrl instead of localhost
     return NextResponse.redirect(`${baseUrl}/error?message=missing_code`);
   }
 
@@ -52,6 +51,6 @@ export async function GET(request: Request) {
     return NextResponse.redirect(`${baseUrl}/error?message=no_access_token`);
   }
 
-  // 6) Finally, redirect to /success with the access token
-  return NextResponse.redirect(`${baseUrl}/success?access_token=${accessToken}`);
+  // 6) Finally, redirect to /dashboard with the access token
+  return NextResponse.redirect(`${baseUrl}/dashboard?access_token=${accessToken}`);
 }

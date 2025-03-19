@@ -1,18 +1,29 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import ListeningStats from '../components/ListeningStats';
 
 const Dashboard = () => {
   const [timeRange, setTimeRange] = useState<'day' | 'week' | 'month'>('week');
   const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
   useEffect(() => {
-    const token = localStorage.getItem('spotify_access_token');
+    const token = searchParams.get('access_token') || localStorage.getItem('spotify_access_token');
+    
     if (!token) {
       setError('Please log in to view your dashboard');
+      router.push('/');
+      return;
     }
-  }, []);
+
+    // Store the token if it came from the URL
+    if (searchParams.get('access_token')) {
+      localStorage.setItem('spotify_access_token', token);
+    }
+  }, [router, searchParams]);
 
   if (error) return <div className="text-red-500 text-center p-4">{error}</div>;
 
