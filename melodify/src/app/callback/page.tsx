@@ -21,10 +21,10 @@ const Callback = () => {
         if (response.ok) {
           const { access_token } = await response.json();
           localStorage.setItem('spotify_access_token', access_token);
-          router.push('/dashboard'); // Redirect to the dashboard
+          router.push('/dashboard'); // Redirect to the dashboard instead of success page
         } else {
           console.error('Failed to exchange token');
-          router.push('/error'); // Redirect to an error page if needed
+          router.push('/error');
         }
       } else {
         console.error('Authorization code not found');

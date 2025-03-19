@@ -1,20 +1,25 @@
 "use client";
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import TopTracks from './TopTracks';
 
 const Home = () => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [error] = useState<string | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     const checkAuthentication = () => {
-      const token = localStorage.getItem('spotify_access_token'); // Consistent with callback.ts
-      setIsAuthenticated(!!token); // Set to true if token exists
+      const token = localStorage.getItem('spotify_access_token');
+      if (token) {
+        setIsAuthenticated(true);
+        router.push('/dashboard');
+      }
     };
 
     checkAuthentication();
-  }, []);
+  }, [router]);
 
   const handleLogin = () => {
     window.location.href = '/api/login'; 
@@ -30,7 +35,7 @@ const Home = () => {
         </>
       ) : (
         <>
-          <p className="text-xl mb-4">Please log in to see your metrics.</p>
+          <p className="text-xl mb-4">Please log in to see your listening statistics.</p>
           <button
             onClick={handleLogin}
             className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
