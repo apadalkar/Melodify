@@ -1,5 +1,24 @@
 import { NextResponse } from 'next/server';
 
+interface SpotifyTrack {
+  id: string;
+  name: string;
+  duration_ms: number;
+  artists: { name: string }[];
+  album: {
+    images: { url: string }[];
+  };
+}
+
+interface SpotifyHistoryItem {
+  track: SpotifyTrack;
+  played_at: string;
+}
+
+interface SpotifyHistoryResponse {
+  items: SpotifyHistoryItem[];
+}
+
 export async function GET(request: Request) {
   const token = request.headers.get('Authorization')?.replace('Bearer ', '');
 
@@ -17,13 +36,13 @@ export async function GET(request: Request) {
       throw new Error('Failed to fetch listening history');
     }
 
-    const data = await response.json();
+    const data: SpotifyHistoryResponse = await response.json();
     
     // Process the data to get listening statistics
-    const trackPlays = new Map<string, { count: number; duration: number }>();
+    const trackPlays = new Map<string, { count: number; duration: number; track: SpotifyTrack }>();
     let totalMinutes = 0;
 
-    data.items.forEach((item: any) => {
+    data.items.forEach((item: SpotifyHistoryItem) => {
       const track = item.track;
       const trackId = track.id;
       const duration = track.duration_ms / 60000; // Convert to minutes
@@ -33,7 +52,7 @@ export async function GET(request: Request) {
         stats.count += 1;
         stats.duration += duration;
       } else {
-        trackPlays.set(trackId, { count: 1, duration });
+        trackPlays.set(trackId, { count: 1, duration, track });
       }
       
       totalMinutes += duration;
