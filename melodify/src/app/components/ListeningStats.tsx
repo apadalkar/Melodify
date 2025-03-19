@@ -13,6 +13,7 @@ type ListeningStat = {
       images: { url: string }[];
     };
   };
+  played_at?: string;
 };
 
 type ListeningStatsProps = {
@@ -48,7 +49,34 @@ const ListeningStats = ({ timeRange }: ListeningStatsProps) => {
         }
 
         const data = await response.json();
-        setStats(data);
+        
+        // Filter data based on timeRange
+        const now = new Date();
+        const filteredStats = data.listeningStats.filter((stat: ListeningStat) => {
+          if (!stat.played_at) return false;
+          const playedAt = new Date(stat.played_at);
+          const diffInHours = (now.getTime() - playedAt.getTime()) / (1000 * 60 * 60);
+          
+          switch (timeRange) {
+            case 'day':
+              return diffInHours <= 24;
+            case 'week':
+              return diffInHours <= 24 * 7;
+            case 'month':
+              return diffInHours <= 24 * 30;
+            default:
+              return true;
+          }
+        });
+
+        // Recalculate total minutes for filtered data
+        const totalMinutes = filteredStats.reduce((sum: number, stat: ListeningStat) => sum + stat.duration, 0);
+
+        setStats({
+          listeningStats: filteredStats,
+          totalMinutes,
+          lastUpdated: data.lastUpdated
+        });
       } catch (err) {
         console.error('Error fetching listening stats:', err);
         setError('Failed to fetch listening statistics');

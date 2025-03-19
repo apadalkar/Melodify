@@ -39,7 +39,7 @@ export async function GET(request: Request) {
     const data: SpotifyHistoryResponse = await response.json();
     
     // Process the data to get listening statistics
-    const trackPlays = new Map<string, { count: number; duration: number; track: SpotifyTrack }>();
+    const trackPlays = new Map<string, { count: number; duration: number; track: SpotifyTrack; played_at: string }>();
     let totalMinutes = 0;
 
     data.items.forEach((item: SpotifyHistoryItem) => {
@@ -52,7 +52,12 @@ export async function GET(request: Request) {
         stats.count += 1;
         stats.duration += duration;
       } else {
-        trackPlays.set(trackId, { count: 1, duration, track });
+        trackPlays.set(trackId, { 
+          count: 1, 
+          duration, 
+          track,
+          played_at: item.played_at 
+        });
       }
       
       totalMinutes += duration;

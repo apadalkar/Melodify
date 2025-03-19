@@ -3,9 +3,13 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import ListeningStats from './ListeningStats';
+import TopTracks from '../TopTracks';
+
+type ViewType = 'stats' | 'top';
 
 const DashboardContent = () => {
   const [timeRange, setTimeRange] = useState<'day' | 'week' | 'month'>('week');
+  const [viewType, setViewType] = useState<ViewType>('stats');
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -29,36 +33,60 @@ const DashboardContent = () => {
 
   return (
     <div className="max-w-4xl mx-auto">
-      <h1 className="text-4xl font-bold text-center mb-8">Your Listening Dashboard</h1>
+      <h1 className="text-4xl font-bold text-center mb-8">Your Spotify Dashboard</h1>
       
       <div className="flex justify-center space-x-4 mb-8">
         <button
-          onClick={() => setTimeRange('day')}
+          onClick={() => setViewType('stats')}
           className={`px-4 py-2 rounded ${
-            timeRange === 'day' ? 'bg-green-600' : 'bg-gray-700'
+            viewType === 'stats' ? 'bg-green-600' : 'bg-gray-700'
           }`}
         >
-          Today
+          Listening Stats
         </button>
         <button
-          onClick={() => setTimeRange('week')}
+          onClick={() => setViewType('top')}
           className={`px-4 py-2 rounded ${
-            timeRange === 'week' ? 'bg-green-600' : 'bg-gray-700'
+            viewType === 'top' ? 'bg-green-600' : 'bg-gray-700'
           }`}
         >
-          This Week
-        </button>
-        <button
-          onClick={() => setTimeRange('month')}
-          className={`px-4 py-2 rounded ${
-            timeRange === 'month' ? 'bg-green-600' : 'bg-gray-700'
-          }`}
-        >
-          This Month
+          Top Tracks & Artists
         </button>
       </div>
 
-      <ListeningStats timeRange={timeRange} />
+      {viewType === 'stats' ? (
+        <>
+          <div className="flex justify-center space-x-4 mb-8">
+            <button
+              onClick={() => setTimeRange('day')}
+              className={`px-4 py-2 rounded ${
+                timeRange === 'day' ? 'bg-green-600' : 'bg-gray-700'
+              }`}
+            >
+              Today
+            </button>
+            <button
+              onClick={() => setTimeRange('week')}
+              className={`px-4 py-2 rounded ${
+                timeRange === 'week' ? 'bg-green-600' : 'bg-gray-700'
+              }`}
+            >
+              This Week
+            </button>
+            <button
+              onClick={() => setTimeRange('month')}
+              className={`px-4 py-2 rounded ${
+                timeRange === 'month' ? 'bg-green-600' : 'bg-gray-700'
+              }`}
+            >
+              This Month
+            </button>
+          </div>
+          <ListeningStats timeRange={timeRange} />
+        </>
+      ) : (
+        <TopTracks />
+      )}
     </div>
   );
 };
