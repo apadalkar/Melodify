@@ -15,17 +15,23 @@ const TopTracks = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const token = sessionStorage.getItem('spotify_access_token');
+    const token = localStorage.getItem('spotify_access_token');
   
-    if (token) {
-      fetchTopTracks(token)
-        .then((tracks: Track[]) => {
-          setTopTracks(tracks);
-        })
-        .catch(() => {
-          setError('Error fetching top tracks');
-        });
+    if (!token) {
+      setError('Please log in to view your top tracks');
+      return;
     }
+
+    fetchTopTracks(token)
+      .then((tracks: Track[]) => {
+        setTopTracks(tracks);
+      })
+      .catch((error) => {
+        console.error('Error fetching top tracks:', error);
+        setError('Failed to fetch top tracks. Please try logging in again.');
+        // Clear invalid token
+        localStorage.removeItem('spotify_access_token');
+      });
   }, []);
   
 

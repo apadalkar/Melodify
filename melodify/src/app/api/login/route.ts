@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 export async function GET() {
   const clientId = process.env.SPOTIFY_CLIENT_ID;
   const redirectUri = process.env.SPOTIFY_REDIRECT_URI;
-  const scopes = 'user-read-private user-read-email user-top-read';
+  const scopes = 'user-read-private user-read-email user-top-read user-read-recently-played';
 
   if (!clientId || !redirectUri) {
     console.error('Missing environment variables.');

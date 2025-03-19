@@ -1,68 +1,55 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-
-// Define types
-type Track = {
-  name: string;
-  artist: string;
-  plays: number;
-};
-
-type Metrics = {
-  topTracks: Track[];
-};
+import ListeningStats from '../components/ListeningStats';
 
 const Dashboard = () => {
-  const [metrics, setMetrics] = useState<Metrics | null>(null);
+  const [timeRange, setTimeRange] = useState<'day' | 'week' | 'month'>('week');
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchMetrics = async () => {
-      const token = localStorage.getItem('spotify_access_token');
-
-      if (!token) {
-        setError('User not authenticated');
-        return;
-      }
-
-      try {
-        const response = await fetch('/api/top-tracks', {
-          method: 'GET',
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
-        if (response.ok) {
-          const data: Metrics = await response.json();
-          setMetrics(data);
-        } else {
-          setError('Failed to fetch metrics');
-        }
-      } catch (err) {
-        console.error(err);
-        setError('An error occurred');
-      }
-    };
-
-    fetchMetrics();
+    const token = localStorage.getItem('spotify_access_token');
+    if (!token) {
+      setError('Please log in to view your dashboard');
+    }
   }, []);
 
-  if (error) return <div>{error}</div>;
+  if (error) return <div className="text-red-500 text-center p-4">{error}</div>;
 
   return (
-    <div>
-      <h1>Your Metrics</h1>
-      {metrics ? (
-        <ul>
-          {metrics.topTracks.map((track, index) => (
-            <li key={index}>
-              {track.name} by {track.artist} - {track.plays} plays
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p>Loading metrics...</p>
-      )}
+    <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black text-white p-6">
+      <div className="max-w-4xl mx-auto">
+        <h1 className="text-4xl font-bold text-center mb-8">Your Listening Dashboard</h1>
+        
+        <div className="flex justify-center space-x-4 mb-8">
+          <button
+            onClick={() => setTimeRange('day')}
+            className={`px-4 py-2 rounded ${
+              timeRange === 'day' ? 'bg-green-600' : 'bg-gray-700'
+            }`}
+          >
+            Today
+          </button>
+          <button
+            onClick={() => setTimeRange('week')}
+            className={`px-4 py-2 rounded ${
+              timeRange === 'week' ? 'bg-green-600' : 'bg-gray-700'
+            }`}
+          >
+            This Week
+          </button>
+          <button
+            onClick={() => setTimeRange('month')}
+            className={`px-4 py-2 rounded ${
+              timeRange === 'month' ? 'bg-green-600' : 'bg-gray-700'
+            }`}
+          >
+            This Month
+          </button>
+        </div>
+
+        <ListeningStats timeRange={timeRange} />
+      </div>
     </div>
   );
 };
