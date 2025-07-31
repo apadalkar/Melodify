@@ -194,7 +194,7 @@ const ListeningStats = ({ timeRange }: ListeningStatsProps) => {
         </div>
       )}
 
-      {stats.monthlyRecaps.length > 0 && (
+      {timeRange === 'month' && stats.monthlyRecaps.length > 0 && (
         <div>
           <h3 className="text-xl font-bold text-green-400 mb-4">Monthly Recaps</h3>
           <div className="space-y-6">
