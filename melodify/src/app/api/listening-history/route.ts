@@ -21,6 +21,26 @@ interface SpotifyHistoryResponse {
   items: SpotifyHistoryItem[];
 }
 
+interface TrackStats {
+  count: number;
+  duration: number;
+  track: SpotifyTrack;
+}
+
+interface AlbumStats {
+  albumId: string;
+  albumName: string;
+  albumImage: string;
+  count: number;
+  duration: number;
+}
+
+interface MonthlyRecapData {
+  totalMinutes: number;
+  trackStats: Map<string, TrackStats>;
+  albumStats: Map<string, AlbumStats>;
+}
+
 export async function GET(request: Request) {
   const token = request.headers.get('Authorization')?.replace('Bearer ', '');
   const { searchParams } = new URL(request.url);
@@ -61,7 +81,7 @@ export async function GET(request: Request) {
 
     const trackPlays = new Map<string, { count: number; duration: number; track: SpotifyTrack; played_at: string }>();
     const albumPlays = new Map<string, { albumId: string; albumName: string; albumImage: string; count: number; duration: number }>();
-    const monthlyRecaps = new Map<string, { totalMinutes: number; trackStats: Map<string, any>; albumStats: Map<string, any> }>();
+    const monthlyRecaps = new Map<string, MonthlyRecapData>();
     let totalMinutes = 0;
 
     data.items.forEach((item: SpotifyHistoryItem) => {
@@ -72,7 +92,7 @@ export async function GET(request: Request) {
       const albumId = track.album.id || track.album.name;
       const albumName = track.album.name;
       const albumImage = track.album.images?.[0]?.url || '';
-      const monthKey = item.played_at.slice(0, 7); // YYYY-MM
+      const monthKey = item.played_at.slice(0, 7);
 
       if (now - playedAt <= timeRangeMs) {
         if (trackPlays.has(trackId)) {
@@ -103,7 +123,6 @@ export async function GET(request: Request) {
         totalMinutes += duration;
       }
 
-      // Monthly Recap
       if (!monthlyRecaps.has(monthKey)) {
         monthlyRecaps.set(monthKey, {
           totalMinutes: 0,
@@ -113,9 +132,8 @@ export async function GET(request: Request) {
       }
       const monthRecap = monthlyRecaps.get(monthKey)!;
       monthRecap.totalMinutes += duration;
-      // Track stats per month
       if (monthRecap.trackStats.has(trackId)) {
-        const stats = monthRecap.trackStats.get(trackId);
+        const stats = monthRecap.trackStats.get(trackId)!;
         stats.count += 1;
         stats.duration += duration;
       } else {
@@ -125,9 +143,8 @@ export async function GET(request: Request) {
           track,
         });
       }
-      // Album stats per month
       if (monthRecap.albumStats.has(albumId)) {
-        const stats = monthRecap.albumStats.get(albumId);
+        const stats = monthRecap.albumStats.get(albumId)!;
         stats.count += 1;
         stats.duration += duration;
         stats.albumName = albumName;

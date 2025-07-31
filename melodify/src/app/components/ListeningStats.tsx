@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Image from 'next/image';
 
 type ListeningStat = {
   trackId: string;
@@ -24,11 +25,28 @@ type TopAlbum = {
   duration: number;
 };
 
+type MonthlyRecapTrack = {
+  count: number;
+  duration: number;
+  track: {
+    name: string;
+    artists: { name: string }[];
+  };
+};
+
+type MonthlyRecapAlbum = {
+  albumId: string;
+  albumName: string;
+  albumImage: string;
+  count: number;
+  duration: number;
+};
+
 type MonthlyRecap = {
   month: string;
   totalMinutes: number;
-  topTracks: any[];
-  topAlbums: any[];
+  topTracks: MonthlyRecapTrack[];
+  topAlbums: MonthlyRecapAlbum[];
 };
 
 type ListeningStatsProps = {
@@ -155,9 +173,11 @@ const ListeningStats = ({ timeRange }: ListeningStatsProps) => {
                 className="flex items-center bg-gray-800 p-4 rounded-lg"
               >
                 {album.albumImage && (
-                  <img
+                  <Image
                     src={album.albumImage}
                     alt={album.albumName}
+                    width={64}
+                    height={64}
                     className="w-16 h-16 rounded-lg mr-4"
                   />
                 )}
