@@ -1,11 +1,9 @@
 import { NextResponse } from "next/server";
 
 export async function GET(request: Request) {
-  // 1) Parse the URL for the "code"
   const { searchParams } = new URL(request.url);
   const code = searchParams.get("code");
 
-  // 2) We'll read the base URL from an env variable for final redirects
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
   if (!code) {
@@ -13,7 +11,6 @@ export async function GET(request: Request) {
     return NextResponse.redirect(`${baseUrl}/error?message=missing_code`);
   }
 
-  // 3) Grab all the Spotify env variables
   const clientId = process.env.SPOTIFY_CLIENT_ID;
   const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
   const redirectUri = process.env.SPOTIFY_REDIRECT_URI || "http://localhost:3000/api/callback";
@@ -23,7 +20,6 @@ export async function GET(request: Request) {
     return NextResponse.redirect(`${baseUrl}/error?message=server_error`);
   }
 
-  // 4) Exchange the code for an access token
   const tokenResponse = await fetch("https://accounts.spotify.com/api/token", {
     method: "POST",
     headers: {
@@ -44,13 +40,11 @@ export async function GET(request: Request) {
     return NextResponse.redirect(`${baseUrl}/error?message=token_exchange_failed`);
   }
 
-  // 5) Grab the returned access token
   const accessToken = tokenData.access_token;
   if (!accessToken) {
     console.error("No access token in response:", tokenData);
     return NextResponse.redirect(`${baseUrl}/error?message=no_access_token`);
   }
 
-  // 6) Finally, redirect to /dashboard with the access token
   return NextResponse.redirect(`${baseUrl}/dashboard?access_token=${accessToken}`);
 }

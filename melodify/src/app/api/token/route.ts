@@ -6,7 +6,6 @@ export async function POST(request: Request) {
   const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
   const redirectUri = process.env.SPOTIFY_REDIRECT_URI || 'http://localhost:3000/api/callback';
 
-  // Debugging environment variables and received code
   console.log('SPOTIFY_CLIENT_ID:', clientId);
   console.log('SPOTIFY_CLIENT_SECRET:', clientSecret);
   console.log('SPOTIFY_REDIRECT_URI:', redirectUri);
@@ -31,7 +30,7 @@ export async function POST(request: Request) {
   });
 
   const responseText = await response.text();
-  console.log('Spotify Response:', responseText); // Debugging
+  console.log('Spotify Response:', responseText);
 
   if (!response.ok) {
     console.error('Token exchange failed:', responseText);

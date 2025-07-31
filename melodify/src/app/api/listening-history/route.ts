@@ -6,6 +6,8 @@ interface SpotifyTrack {
   duration_ms: number;
   artists: { name: string }[];
   album: {
+    id?: string;
+    name: string;
     images: { url: string }[];
   };
 }
@@ -29,73 +31,136 @@ export async function GET(request: Request) {
   }
 
   try {
-    // Calculate the time range in milliseconds
     const now = new Date().getTime();
     let timeRangeMs: number;
     switch (timeRange) {
       case 'day':
-        timeRangeMs = 24 * 60 * 60 * 1000; // 24 hours
+        timeRangeMs = 24 * 60 * 60 * 1000;
         break;
       case 'week':
-        timeRangeMs = 7 * 24 * 60 * 60 * 1000; // 7 days
+        timeRangeMs = 7 * 24 * 60 * 60 * 1000;
         break;
       case 'month':
-        timeRangeMs = 30 * 24 * 60 * 60 * 1000; // 30 days
+        timeRangeMs = 30 * 24 * 60 * 60 * 1000;
         break;
       default:
-        timeRangeMs = 7 * 24 * 60 * 60 * 1000; // Default to week
+        timeRangeMs = 7 * 24 * 60 * 60 * 1000;
     }
 
-    // Fetch recently played tracks
     const response = await fetch('https://api.spotify.com/v1/me/player/recently-played?limit=50', {
       headers: { Authorization: `Bearer ${token}` },
     });
 
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Spotify API error:', errorText);
       throw new Error('Failed to fetch listening history');
     }
 
     const data: SpotifyHistoryResponse = await response.json();
-    
-    // Process the data to get listening statistics
+
     const trackPlays = new Map<string, { count: number; duration: number; track: SpotifyTrack; played_at: string }>();
+    const albumPlays = new Map<string, { albumId: string; albumName: string; albumImage: string; count: number; duration: number }>();
+    const monthlyRecaps = new Map<string, { totalMinutes: number; trackStats: Map<string, any>; albumStats: Map<string, any> }>();
     let totalMinutes = 0;
 
     data.items.forEach((item: SpotifyHistoryItem) => {
       const track = item.track;
       const trackId = track.id;
-      const duration = track.duration_ms / 60000; // Convert to minutes
+      const duration = track.duration_ms / 60000;
       const playedAt = new Date(item.played_at).getTime();
-      
-      // Only include tracks within the time range
+      const albumId = track.album.id || track.album.name;
+      const albumName = track.album.name;
+      const albumImage = track.album.images?.[0]?.url || '';
+      const monthKey = item.played_at.slice(0, 7); // YYYY-MM
+
       if (now - playedAt <= timeRangeMs) {
         if (trackPlays.has(trackId)) {
           const stats = trackPlays.get(trackId)!;
           stats.count += 1;
           stats.duration += duration;
         } else {
-          trackPlays.set(trackId, { 
-            count: 1, 
-            duration, 
+          trackPlays.set(trackId, {
+            count: 1,
+            duration,
             track,
-            played_at: item.played_at 
+            played_at: item.played_at,
           });
         }
-        
+        if (albumPlays.has(albumId)) {
+          const stats = albumPlays.get(albumId)!;
+          stats.count += 1;
+          stats.duration += duration;
+        } else {
+          albumPlays.set(albumId, {
+            albumId,
+            albumName,
+            albumImage,
+            count: 1,
+            duration,
+          });
+        }
         totalMinutes += duration;
+      }
+
+      // Monthly Recap
+      if (!monthlyRecaps.has(monthKey)) {
+        monthlyRecaps.set(monthKey, {
+          totalMinutes: 0,
+          trackStats: new Map(),
+          albumStats: new Map(),
+        });
+      }
+      const monthRecap = monthlyRecaps.get(monthKey)!;
+      monthRecap.totalMinutes += duration;
+      // Track stats per month
+      if (monthRecap.trackStats.has(trackId)) {
+        const stats = monthRecap.trackStats.get(trackId);
+        stats.count += 1;
+        stats.duration += duration;
+      } else {
+        monthRecap.trackStats.set(trackId, {
+          count: 1,
+          duration,
+          track,
+        });
+      }
+      // Album stats per month
+      if (monthRecap.albumStats.has(albumId)) {
+        const stats = monthRecap.albumStats.get(albumId);
+        stats.count += 1;
+        stats.duration += duration;
+        stats.albumName = albumName;
+        stats.albumImage = albumImage;
+      } else {
+        monthRecap.albumStats.set(albumId, {
+          albumId,
+          albumName,
+          albumImage,
+          count: 1,
+          duration,
+        });
       }
     });
 
-    // Convert to array format
     const listeningStats = Array.from(trackPlays.entries()).map(([trackId, stats]) => ({
       trackId,
-      ...stats
+      ...stats,
+    }));
+    const topAlbums = Array.from(albumPlays.values()).sort((a, b) => b.count - a.count);
+    const monthlyRecapsArr = Array.from(monthlyRecaps.entries()).map(([month, recap]) => ({
+      month,
+      totalMinutes: recap.totalMinutes,
+      topTracks: Array.from(recap.trackStats.values()).sort((a, b) => b.count - a.count),
+      topAlbums: Array.from(recap.albumStats.values()).sort((a, b) => b.count - a.count),
     }));
 
     return NextResponse.json({
       listeningStats,
+      topAlbums,
+      monthlyRecaps: monthlyRecapsArr,
       totalMinutes,
-      lastUpdated: new Date().toISOString()
+      lastUpdated: new Date().toISOString(),
     });
   } catch (error) {
     console.error('Error fetching listening history:', error);

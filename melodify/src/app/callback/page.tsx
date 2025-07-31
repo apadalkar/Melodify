@@ -21,7 +21,7 @@ const Callback = () => {
         if (response.ok) {
           const { access_token } = await response.json();
           localStorage.setItem('spotify_access_token', access_token);
-          router.push('/dashboard'); // Redirect to the dashboard instead of success page
+          router.push('/dashboard');
         } else {
           console.error('Failed to exchange token');
           router.push('/error');
@@ -33,7 +33,7 @@ const Callback = () => {
     };
 
     getToken();
-  }, [router]); 
+  }, [router]);
 
   return <div>Authenticating...</div>;
 };

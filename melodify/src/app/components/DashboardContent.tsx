@@ -33,20 +33,23 @@ const DashboardContent = () => {
   const searchParams = useSearchParams();
 
   useEffect(() => {
-    const token = searchParams.get('access_token') || localStorage.getItem('spotify_access_token');
-    
+    const urlToken = searchParams.get('access_token');
+    const storedToken = localStorage.getItem('spotify_access_token');
+    const token = urlToken || storedToken;
+
     if (!token) {
       setError('Please log in to view your dashboard');
       router.push('/');
       return;
     }
 
-    // Store the token if it came from the URL
-    if (searchParams.get('access_token')) {
-      localStorage.setItem('spotify_access_token', token);
+    if (urlToken) {
+      localStorage.setItem('spotify_access_token', urlToken);
+      const params = new URLSearchParams(window.location.search);
+      params.delete('access_token');
+      window.history.replaceState({}, document.title, window.location.pathname + (params.toString() ? '?' + params.toString() : ''));
     }
 
-    // Fetch top tracks and artists if in top view
     if (viewType === 'top') {
       const fetchTopData = async () => {
         try {
@@ -137,7 +140,6 @@ const DashboardContent = () => {
         </>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-          {/* Top Tracks Section */}
           <section>
             <h3 className="text-2xl font-bold mb-4 text-green-400">Top Tracks</h3>
             <div className="space-y-4">
@@ -167,7 +169,6 @@ const DashboardContent = () => {
             </div>
           </section>
 
-          {/* Top Artists Section */}
           <section>
             <h3 className="text-2xl font-bold mb-4 text-green-400">Top Artists</h3>
             <div className="space-y-4">
