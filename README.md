@@ -12,4 +12,4 @@ https://melodify-fm.vercel.app
 - View stats for today, this week, or this month
 
 ## Notice
-This project is limited to development and testing due to Spotify's app review requirements. The app cannot be publicly released as Spotify requires all apps to undergo a review process before they can be used by the general public. As of now, the app is in development mode and can only be used by whitelisted users, so public access is restricted until Spotify approves the application.
+This project is limited to development and testing because of Spotify's app review requirements, so it cannot be publicly released until it passes the review process. The app is in development mode and can only be used by whitelisted users, so public access is restricted until Spotify approves the application.
