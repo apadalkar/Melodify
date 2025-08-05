@@ -11,5 +11,5 @@ https://melodify-fm.vercel.app
 - View historical listening data organized by month
 - View stats for today, this week, or this month
 
-## Notice
-This project is limited to development and testing because of Spotify's app review requirements, so it cannot be publicly released until it passes the review process. The app is in development mode and can only be used by whitelisted users, so public access is restricted until Spotify approves the application.
+## Note
+This project is limited to development and testing because of Spotify's app review requirements, so public access is restricted until Spotify approves the application and can only be used by whitelisted users.
